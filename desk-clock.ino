@@ -39,7 +39,7 @@ const char* ssid = "";
 const char* password = "";
 
 // Setup display
-Adafruit_SSD1306 display = Adafruit_SSD1306(128, 32, &Wire, -1);
+Adafruit_SSD1306 display = Adafruit_SSD1306(128, 64, &Wire, -1);
 Adafruit_SHT31 sht31 = Adafruit_SHT31();
 
 // Clock offset
@@ -47,9 +47,9 @@ int GMTOffset = 3600;
 int daylightOffset = 3600;
 
 // Offset Temperature
-int offsetTemp = 0;
+float offsetTemp = 0.0;
 // Offset Humidity
-int offsetHum = 0;
+float offsetHum = 0.0;
 
 // Timer
 #define UPDATE_INTERVAL 2000
@@ -103,6 +103,7 @@ void printStringDisplay(int x, int y, const String& text, int fontSize = 1, bool
   display.setFont(font);
   display.setTextSize(fontSize);
   display.setTextColor(WHITE);
+  display.setTextWrap(false);
 
   display.setCursor(x, y);
   display.print(text);
@@ -123,12 +124,13 @@ void setup_display() {
 
   display.clearDisplay();
   display.setFont(&Org_01);
+  display.setTextWrap(false);
   display.dim(true);
 }
 void setup_wifi() {
   // Connecting WIFI
   Serial.println("Starting WIFI!");
-  printStringDisplay(5, 5, "WIFI Starting", 2, true);
+  printStringDisplay(5, 5, "WIFI Starting", 1, true);
 
   WiFi.begin(ssid, password);
   WiFi.setTxPower(WIFI_POWER_2dBm);
@@ -199,6 +201,7 @@ void showClock() {
 
   display.clearDisplay();
 
+  display.setFont(&Org_01);
   display.setTextSize(5);
   display.setTextColor(WHITE);
   display.setTextWrap(false);
@@ -227,6 +230,7 @@ void showTemperature() {
 
   display.clearDisplay();
 
+  display.setFont(&Org_01);
   display.setTextSize(4);
   display.setTextColor(WHITE);
   display.setTextWrap(false);
