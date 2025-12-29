@@ -17,9 +17,6 @@
 // Debouncer
 #include <EasyButton.h>
 
-// Font
-#include "Org_01.h"
-
 // Pin I2C
 #define SDA_PIN 9
 #define SCL_PIN 10
@@ -44,12 +41,14 @@ Adafruit_SHT31 sht31 = Adafruit_SHT31();
 
 // Clock offset
 int GMTOffset = 3600;
-int daylightOffset = 3600;
+int daylightOffset = 0;  // 3600 per ora Estiva
 
 // Offset Temperature
-float offsetTemp = 0.0;
+float offsetTemp = -1.0;
 // Offset Humidity
-float offsetHum = 0.0;
+float offsetHum = -3.0;
+
+char timeBuffer[6];
 
 // Timer
 #define UPDATE_INTERVAL 2000
@@ -96,11 +95,11 @@ void loop() {
 }
 
 // Print Screen
-void printStringDisplay(int x, int y, const String& text, int fontSize = 1, bool clearDisplay = false, const GFXfont* font = nullptr) {
+void printStringDisplay(int x, int y, const String& text, int fontSize = 1, bool clearDisplay = false) {
   if (clearDisplay) {
     display.clearDisplay();
   }
-  display.setFont(font);
+  display.setFont();
   display.setTextSize(fontSize);
   display.setTextColor(WHITE);
   display.setTextWrap(false);
@@ -123,7 +122,7 @@ void setup_display() {
   Serial.println("Display allocated!");
 
   display.clearDisplay();
-  display.setFont(&Org_01);
+  display.setFont();
   display.setTextWrap(false);
   display.dim(true);
 }
@@ -201,26 +200,15 @@ void showClock() {
 
   display.clearDisplay();
 
-  display.setFont(&Org_01);
-  display.setTextSize(5);
+  display.setFont();
+  display.setTextSize(4);
   display.setTextColor(WHITE);
   display.setTextWrap(false);
 
-  // Hour
-  if (format(timeinfo->tm_hour).startsWith("1")) {
-    display.setCursor(20, 37);
-  } else {
-    display.setCursor(1, 37);
-  }
-  display.print(format(timeinfo->tm_hour));
+  display.setCursor(6, 18);
 
-  // :
-  display.setCursor(62, 37);
-  display.print(":");
-
-  // Minutes
-  display.setCursor(72, 37);
-  display.print(format(timeinfo->tm_min));
+  sprintf(timeBuffer, "%02d:%02d", timeinfo->tm_hour, timeinfo->tm_min);
+  display.print(timeBuffer);
 
   display.display();
 }
@@ -230,21 +218,21 @@ void showTemperature() {
 
   display.clearDisplay();
 
-  display.setFont(&Org_01);
-  display.setTextSize(4);
+  display.setFont();
+  display.setTextSize(3);
   display.setTextColor(WHITE);
   display.setTextWrap(false);
 
   // Temperature
-  display.setCursor(6, 22);
+  display.setCursor(12, 6);
   display.print(temp, 1);
-  display.setCursor(97, 22);
+  display.setCursor(101, 6);
   display.print("C");
 
   // Humidity
-  display.setCursor(6, 55);
+  display.setCursor(12, 36);
   display.print(hum, 1);
-  display.setCursor(97, 55);
+  display.setCursor(101, 36);
   display.print("%");
 
   display.display();
