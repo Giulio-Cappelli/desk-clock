@@ -39,9 +39,8 @@ const char* password = "";
 Adafruit_SSD1306 display = Adafruit_SSD1306(128, 64, &Wire, -1);
 Adafruit_SHT31 sht31 = Adafruit_SHT31();
 
-// Clock offset
-int GMTOffset = 3600;
-int daylightOffset = 0;  // 3600 per ora Estiva
+// Clock offset (Italian offset)
+const char* TZ_INFO = "CET-1CEST,M3.5.0,M10.5.0/3";
 
 // Offset Temperature
 float offsetTemp = -1.0;
@@ -74,7 +73,7 @@ void setup() {
   setup_termometer();
 
   // Connecting to NTP server
-  configTime(GMTOffset, daylightOffset, "it.pool.ntp.org", "pool.ntp.org", "time.nist.gov");
+  configTzTime(TZ_INFO, "it.pool.ntp.org", "pool.ntp.org", "time.nist.gov");
 
   delay(1000);
 }
@@ -87,7 +86,7 @@ void loop() {
 
     if (clock_timer.time_millis() >= UPDATE_INTERVAL) {
       updateScreen();
-      clock_timer.restart();
+      clock_timer.restart(); 
     }
   } else {
     display.ssd1306_command(SSD1306_DISPLAYOFF);
@@ -96,7 +95,7 @@ void loop() {
 
 // Print Screen
 void printStringDisplay(int x, int y, const String& text, int fontSize = 1, bool clearDisplay = false) {
-  if (clearDisplay) {
+  if(clearDisplay){
     display.clearDisplay();
   }
   display.setFont();
