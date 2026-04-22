@@ -1,14 +1,10 @@
-#ifdef ESP32
-#include <WiFi.h>
-#else
-#include <ESP8266WiFi.h>
-#endif
-
 #include <Adafruit_GFX.h>
 #include <Adafruit_SHT31.h>
 #include <Adafruit_SSD1306.h>
 #include <SPI.h>
 #include <Wire.h>
+#include <WiFi.h>
+#include <WiFiMulti.h>
 #include <time.h>
 
 // Timer
@@ -31,9 +27,7 @@ int menuSelection;
 EasyButton displayButton(DISPLAY_BUTTON_PIN, 40, true);
 bool enableDisplay;
 
-// WIFI Credentials
-const char* ssid = "";
-const char* password = "";
+WiFiMulti wifiMulti;
 
 // Setup display
 Adafruit_SSD1306 display = Adafruit_SSD1306(128, 64, &Wire, -1);
@@ -130,36 +124,38 @@ void setup_wifi() {
   Serial.println("Starting WIFI!");
   printStringDisplay(5, 5, "WIFI Starting", 1, true);
 
-  WiFi.begin(ssid, password);
-  WiFi.setTxPower(WIFI_POWER_2dBm);
+  WiFi.mode(WIFI_STA);
 
-  int i = 0;
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(1000);
+  wifiMulti.addAP("ssid", "password");
 
-    i += 1;
+  WiFi.setTxPower(WIFI_POWER_11dBm);
+
+  int dotCount = 0;
+  String dots = "";
+
+  while (wifiMulti.run() != WL_CONNECTED) {
+    delay(500);
+    
+    dotCount++;
+    if (dotCount > 3) dotCount = 1;
+    dots = "";
+    for(int j=0; j<dotCount; j++) dots += ".";
+
+    Serial.print(".");
 
     printStringDisplay(5, 5, "Connecting", 2, true);
-    printStringDisplay(21, 25, "WiFi", 2);
-
-    switch (i) {
-      case 1:
-        printStringDisplay(69, 25, ".", 2);
-        break;
-      case 2:
-        printStringDisplay(81, 25, ".", 2);
-        break;
-      case 3:
-        printStringDisplay(93, 25, ".", 2);
-        i = 0;
-        break;
-      default:
-        break;
-    }
+    printStringDisplay(21, 25, "WiFi" + dots, 2);
   }
-  Serial.println("Connected to WIFI!");
-  printStringDisplay(41, 14, "WiFi", 2, true);
-  printStringDisplay(11, 36, "Connected", 2);
+
+  WiFi.setTxPower(WIFI_POWER_2dBm);
+
+  Serial.println("\nConnected to: " + WiFi.SSID());
+  
+  printStringDisplay(5, 5, "WiFi Online", 1, true);
+  printStringDisplay(5, 20, WiFi.SSID().c_str(), 1);
+  printStringDisplay(5, 40, "Connected!", 1);
+  
+  delay(500);
 }
 void setup_termometer() {
   if (!sht31.begin(0x44)) {  // Set to 0x45 for alternate I2C address
@@ -193,7 +189,7 @@ String format(int time) {
   return (time < 10 ? "0" : "") + String(time);
 }
 void showClock() {
-  // Getting the time and temerature
+  // Getting the time and temperature
   time_t rawtime = time(nullptr);
   struct tm* timeinfo = localtime(&rawtime);
 
